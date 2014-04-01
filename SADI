@@ -1,6 +1,14 @@
 #!/usr/bin/perl -w
 
 package BIO2RDF_WRAPPER;
+
+=head1  NAME
+  
+  BIO2RDF_WRAPPER - a SADI service wrapper for Bio2RDF endpoints
+
+
+=cut
+
 use strict;
 use warnings;
 use SADI::Simple 0.007;
@@ -9,12 +17,28 @@ use Log::Log4perl qw(:easy);
 use base 'SADI::Simple::SyncService';  # 'SADI::Simple::SyncService' or 'SADI::Simple::AsyncService'
 
 Log::Log4perl->easy_init($WARN);
-my $debug = 0;  # switching this to "1" allows you to run the SADI script from the command line with useful default values
+
+
+=head1 CONFIGURATION
+
+  1) You need to set the $CONFIGURATION_FILE_PATH variable in this script
+  2) You need to ensure your server generates the REQUEST_URI and HTTP_HOST
+     environment variables.  If not, you will need to hard-code the path to this script
+     into the Perl code
+     
+=cut
+
+
+# since on most servers you cannot serve files from your executables folder
+# the cofiguration files will exist somewhere else on your path
+# place the path to the ontologies and .cfg files here
+my $CONFIGURATION_FILE_PATH="/home/biordf/public_html/ontologies";
+
 
 # if your server does not provide these environment variables
 # REQUEST_URI=/cgi-bin/SADI/someendpoint/some_service_name
-# HTTP_HOST=biordf.org:8080
-# you will need to set the value of $THISSCRIPT manually for each service!
+# HTTP_HOST=your.domain.org:portnumber
+# you will need to set the value of $THISSCRIPT below
 my $request_uri = $ENV{'REQUEST_URI'};
 my $http_host = $ENV{'HTTP_HOST'};
 my $THISSCRIPT;
@@ -22,16 +46,26 @@ my $THISSCRIPT;
 if (defined($request_uri) && defined($http_host)){
 	$THISSCRIPT = "http://" . $http_host . $request_uri;
 } else {
-
 	$THISSCRIPT = "http://example.org/YOUR/SERVICE_HERE";
 }
 &easy_die("somehow script name could not be determined\n") unless $THISSCRIPT;
 
+
+=head1 PATH_INFO
+
+  the PATH_INFO environment variable contains the additional stuff after the
+  script-name in the URL from the client.  e.g.:
+  
+  http://my.server.org/cgi-bin/SADI/namesp/this_to_that
+  
+  PATH_INFO will contain "namesp/this_to_that"
+  
+  PATH_INFO is used as the index keys into the correct configuration files
+  
+=cut
+
 my $pathinfo = $ENV{'PATH_INFO'};
-$debug && ($pathinfo = "sgd/Protein_sameAs_Protein");
 &easy_die("path information from URL did not match pattern SADI/source/servicename\n") unless $pathinfo =~ /\/?(\S+)\/(\S+)\/?/;
-
-
 my ($dataset, $method) = ($1, $2);
 &easy_die("path information could not be parsed into 'source' and 'servicename'\n") unless ($dataset && $method);
 my $CFG = &getConfig($dataset, $method);
@@ -50,17 +84,20 @@ while (<OWL>){
 	$owl .= $_;
 }
 close OWL;
-$debug && print "$sparql \n\n $owl\n\n";
+
 &easy_die("couldn't find sparql or owl files where expected\n") unless ($sparql && $owl);
 
 my $servicename = $CFG->{'INPUTCLASS_NAME'}."_".$CFG->{'PREDICATE_NAME'};
-$debug && print "servicename: $servicename\n\n";
 &easy_die("couldn't create the servicename\n") unless $servicename;
 
 my $description = "consumes $CFG->{'INPUTCLASS_NAME'} identifiers ($CFG->{'INPUTCLASS_URI'} namespace) and generates the \'$CFG->{'PREDICATE_NAME'}\' property for them from the Bio2RDF $dataset endpoint";
-$debug && print "$description\n\n";
 &easy_die("couldn't create service description\n") unless $description;
 
+#  CONFIGURATION FILE EXTRACTON COMPLETE
+
+
+
+#  From here on, it's all bog-standard SADI code.  Here we create the service configuration
 my %config = (
     ServiceName => $servicename,
     Description => $description,
@@ -73,9 +110,8 @@ my %config = (
     Authoritative => 0,
 );
 
-$debug && &process_it();  # in debug/command line mode the sub is explicitly called
 
-
+# and here we decide why we were called, and how to respond
 my $service = BIO2RDF_WRAPPER->new(%config);
 $service->handle_cgi_request;
 
@@ -87,6 +123,8 @@ use RDF::Trine::Node::Resource;
 use RDF::Trine::Node::Literal;
 use RDF::Trine::Statement;
 use RDF::Query::Client;
+
+=head1 Functions
 
 =head2 process_it
 
@@ -101,80 +139,33 @@ use RDF::Query::Client;
 sub process_it {
 
     my ($self, $inputs, $input_model, $output_model) = @_;
-                  					$debug && ( $output_model = RDF::Trine::Model->new());              #############################
-                					$debug && ( $inputs = ["http://bio2rdf.org/sgd:Hsh155p"]);  ###################################
-    foreach my $input (@$inputs) {
-									$debug && ( $input = RDF::Trine::Node::Resource->new($input));  ####################################
-    	my $inputURIString = $input->as_string;
-		$sparql =~ s/\%VAR/$inputURIString/;
-		my $query = RDF::Query::Client->new($sparql);
-		my $iterator = $query->execute($CFG->{'GENERIC_ENDPOINT'});  
 
+    foreach my $input (@$inputs) {
+
+    	my $inputURIString = $input->as_string;
+		$sparql =~ s/\%VAR/$inputURIString/;  # substitute the SPARQL variable with the URI of the input data
+		my $query = RDF::Query::Client->new($sparql);
+		my $iterator = $query->execute($CFG->{'GENERIC_ENDPOINT'});  # execute the query against the URL of the endpoint
 		
 		if ($iterator){ 
 			while (my $row = $iterator->next) {
-	   				# $row is a HASHref containing variable name -> RDF Term bindings
-	   				$debug && print $row->{ 'obj' }->as_string, "\n\n";
-	   				my $resultURI = $row->{ 'obj' }->as_string;
-	   				$resultURI =~ s/[\<\>]//g;
-	   				my $object = RDF::Trine::Node::Resource->new($resultURI);
-	   				my $pred = RDF::Trine::Node::Resource->new($CFG->{'PREDICATE_URI'});
-   	   			    my $statement = RDF::Trine::Statement->new($input, $pred, $object);  ##### CHECK v.v. SUBJECT vs. INPUT
+   				# $row is a HASHref containing variable name -> RDF Term bindings
+   				my $resultURI = $row->{ 'obj' }->as_string;
+   				$resultURI =~ s/[\<\>]//g;
+   				my $object = RDF::Trine::Node::Resource->new($resultURI);
+   				my $pred = RDF::Trine::Node::Resource->new($CFG->{'PREDICATE_URI'});  # what is the predicate that we should be adding
+				my $statement = RDF::Trine::Statement->new($input, $pred, $object); 
 	        		$output_model->add_statement($statement);
 			}
    		}
-#   		&add_provenance_metadata($output_model);
-    }
-    $debug && print $output_model->as_string();
-
+	}
 }
 
-sub add_provenance_metadata {
-	my ($output_model) = @_;
-	
-	use constant RDFS => "http://www.w3.org/2000/01/rdf-schema#";
-	use constant RDFTYPE => "http://www.w3.org/2000/01/rdf-schema#";
-	
-	use constant SIO_RESULTOF => "http://semanticscience.org/resource/is-result-of";
-	# need to create a uniqe bnode here
-	use constant SIO_SERVINVOC => "http://semanticscience.org/resource/SADI-web-service-invocation"; 
-	my $output_class = $CFG->{'OUTPUTCLASS_URI'};
-	my $statement1 = &statement($output_class, SIO_RESULTOF, "BNODE_HERE" );
-	my $statement2 = &statement("????" );
-	
-	
-#if I equivalentClass r some A
-# and O equivalentClass I and s some B
-#
-#Not a clue what you mean by that...
-#
-#
-#B equivalentClass sio:is-result-of :unique-service-invocation
-#
-#B is?
-#
-#
-#I and O are SADI service inputs and outputs, B is the output of the service which is related to the input by s.
-#
-#:unique-service-invocation
-# a sio:SADI-web-service-invocation;
-# dc:date value "datetime-here"^^xsd:datetime; 
-# sio:has-agent :my-sadi-service
-#:my-sadi-service
-# a sio:SADI-Web-Service; 
-# dc:creator :creator
-# dc:publisher :publisher
-	
-}
+=head2 easy_die
 
-sub statement {
-	my ($s, $p, $o) = @_;
-	my $subject = RDF::Trine::Node::Resource->new($s);
-	my $pred = RDF::Trine::Node::Resource->new($p);
-	my $obj = RDF::Trine::Node::Resource->new($o);
-	my $statement = RDF::Trine::Statement->new($subject, $pred, $obj);
-	return $statement;
-}
+ included so that debugging info is sent out to the browser, rather than the server error log
+ 
+=cut
 
 sub easy_die {
 	my $message = shift; 
@@ -189,9 +180,17 @@ sub easy_die {
 	exit 0;
 }
 
+=head2 getConfig
+
+ This opens the configuration folder/file and reads the parameter-values to
+ set the defaults for this service
+ 
+=cut
+
+
 sub getConfig{
 	my ($dataset, $method) = @_;
-	open (CFG, "/home/biordf/public_html/ontologies/$dataset/$method.cfg");
+	open (CFG, "$CONFIGURATION_FILE_PATH/$dataset/$method.cfg");
 	my %config;
 	foreach (
 	"INPUTCLASS_URI", 
