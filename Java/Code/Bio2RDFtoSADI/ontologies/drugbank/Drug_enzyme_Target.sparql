@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/drugbank_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:enzyme ?obj.
+}

@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/mgi_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:xHGNC ?obj.
+}

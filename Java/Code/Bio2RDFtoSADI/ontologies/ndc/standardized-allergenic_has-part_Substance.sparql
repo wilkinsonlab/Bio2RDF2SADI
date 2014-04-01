@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/ndc_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:has-part ?obj.
+}

@@ -1,0 +1,5 @@
+PREFIX pre: <http://www.biopax.org/release/biopax-level3.owl#>
+SELECT *
+WHERE {
+	%VAR pre:organism ?obj.
+}

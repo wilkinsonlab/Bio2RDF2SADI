@@ -1,0 +1,2 @@
+ENDPOINT=http://cu.kegg.bio2rdf.org/sparql
+NAME=kegg

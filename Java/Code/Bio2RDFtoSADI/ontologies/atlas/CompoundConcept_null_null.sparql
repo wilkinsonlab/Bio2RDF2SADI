@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/ns/mesh#>
+SELECT *
+WHERE {
+	%VAR pre:preferredCombination ?obj.
+}

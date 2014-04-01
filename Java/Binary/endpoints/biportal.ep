@@ -1,0 +1,2 @@
+ENDPOINT=http://cu.bioportal.bio2rdf.org/sparql
+NAME=biportal

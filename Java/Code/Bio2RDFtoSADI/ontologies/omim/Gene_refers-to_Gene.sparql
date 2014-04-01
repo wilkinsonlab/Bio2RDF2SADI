@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/omim_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:refers-to ?obj.
+}

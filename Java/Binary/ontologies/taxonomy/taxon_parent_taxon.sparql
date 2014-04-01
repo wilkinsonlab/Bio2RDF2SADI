@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/taxon_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:parent ?obj.
+}

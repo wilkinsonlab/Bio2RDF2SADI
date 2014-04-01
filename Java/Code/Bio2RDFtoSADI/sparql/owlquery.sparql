@@ -1,0 +1,13 @@
+PREFIX uniprot: <http://bio2rdf.org/ns/uniprot:>
+SELECT *
+FROM <EP>
+WHERE {
+ <http://bio2rdf.org/uniprot:Q8C7K6> uniprot:encodedBy ?obj.
+}
+
+PREFIX uniprot: <http://bio2rdf.org/ns/uniprot:>
+SELECT *
+FROM <EP>
+WHERE {
+ %VAR uniprot:encodedBy ?obj.
+}

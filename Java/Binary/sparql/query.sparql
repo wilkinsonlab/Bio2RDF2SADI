@@ -1,0 +1,10 @@
+PREFIX data_vocab: <http://bio2rdf.org/dataset_vocabulary:>
+SELECT  ?subjectType ?aPred ?objType 
+FROM <@DATASET>
+WHERE {
+ ?endpoint a data_vocab:Endpoint.
+ ?endpoint <http://bio2rdf.org/dataset_vocabulary:has_type_relation_type_count> ?anObj.
+ ?anObj <http://bio2rdf.org/dataset_vocabulary:has_subject_type> ?subjectType.
+ ?anObj <http://bio2rdf.org/dataset_vocabulary:has_predicate> ?aPred.
+ ?anObj <http://bio2rdf.org/dataset_vocabulary:has_object_type> ?objType.
+}

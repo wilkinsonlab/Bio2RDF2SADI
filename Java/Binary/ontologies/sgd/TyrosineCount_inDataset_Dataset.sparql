@@ -1,0 +1,5 @@
+PREFIX pre: <http://rdfs.org/ns/void#>
+SELECT *
+WHERE {
+	%VAR pre:inDataset ?obj.
+}

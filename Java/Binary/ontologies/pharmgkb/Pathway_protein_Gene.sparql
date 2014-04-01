@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/pharmgkb_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:protein ?obj.
+}

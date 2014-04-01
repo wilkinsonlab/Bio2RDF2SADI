@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/kegg_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:xGene ?obj.
+}

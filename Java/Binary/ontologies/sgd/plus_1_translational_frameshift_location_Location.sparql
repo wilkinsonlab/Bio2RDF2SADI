@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/sgd_vocabulary:>
+SELECT *
+WHERE {
+	%VAR pre:location ?obj.
+}

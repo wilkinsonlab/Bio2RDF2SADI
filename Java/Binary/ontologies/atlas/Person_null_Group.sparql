@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/ns/bio2rdf#>
+SELECT *
+WHERE {
+	%VAR pre:xGroup ?obj.
+}

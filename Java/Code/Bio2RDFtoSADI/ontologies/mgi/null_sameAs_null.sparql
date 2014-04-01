@@ -1,0 +1,5 @@
+PREFIX pre: <http://www.w3.org/2002/07/owl#>
+SELECT *
+WHERE {
+	%VAR pre:sameAs ?obj.
+}

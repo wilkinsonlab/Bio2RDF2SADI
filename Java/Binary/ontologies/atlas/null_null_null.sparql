@@ -1,0 +1,5 @@
+PREFIX pre: <http://bio2rdf.org/ns/bibtex#>
+SELECT *
+WHERE {
+	%VAR pre:xJournal ?obj.
+}

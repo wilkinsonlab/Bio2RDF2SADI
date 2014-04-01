@@ -1,0 +1,5 @@
+PREFIX pre: <http://vcell.org/sbpax3#>
+SELECT *
+WHERE {
+	%VAR pre:hasUnit ?obj.
+}
