@@ -4,6 +4,30 @@ use RDF::Trine;
 use RDF::Trine::Parser;
 use RDF::Query::Client;
 
+=head1 NAME
+
+ unregister_services.pl  - a script for bulk de-registering Bio2RDF2SADI services
+
+=head1 USAGE
+
+  The first thing you need to do is take your Bio2RDF2SADI service script offline
+  (usually called "SADI" in a default installation)
+  
+  By taking this offline, the service will not respond to an HTTP GET, and
+  therefore when the registy calls it, and finds it isn't there, it will
+  remove it from the registry
+  
+  Therefore, all this script does is query the registry for all
+  Bio2RDF2SADI services, and then asks the registry to re-GET them...
+  which fails, and therefore they become de-registered
+  
+  The only thing you might need to configure in this script is the regexp
+  that matches your Bio2RDF2SADI services.  For all of our services,
+  this is 'Bio2RDF2SADI', which is a subfolder underneath our 'cgi-bin' folder. 
+
+=cut
+
+
 my $query = <<"EOF";
 PREFIX  dc:   <http://protege.stanford.edu/plugins/owl/dc/protege-dc.owl#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -18,7 +42,7 @@ FROM <http://sadiframework.org/registry/>
 WHERE
   { ?s rdf:type serv:serviceDescription .
     ?s serv:hasServiceNameText ?name .
-  FILTER regex(str(?s), "Bio2RDF2SADI")
+  FILTER regex(str(?s), "Bio2RDF2SADI") 
 
   }
 EOF
@@ -39,7 +63,7 @@ my %to_deregister;
 
 
 
-# an example of how to register a service
+# an example of how to de-register a service
 # curl http://sadiframework.org/registry/register/ --data-urlencode 'serviceURI=http://sadiframework.org/examples/hello'
 
 
