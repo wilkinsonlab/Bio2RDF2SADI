@@ -1,6 +1,23 @@
 #!/usr/bin/perl -w
 use strict;
 
+=head1 NAME
+
+ Bio2RDF2SADI2OPMW.pl  - a script to create a comprehensive
+           connectivity map between all pipelineable Bio2RDF2SADI
+           services.  This is expressed as an
+           Open Provenance Model Workflow model template.
+ 
+=head1 USAGE
+
+  The only thing you might need to configure in this script
+  is the regexp that matches your Bio2RDF2SADI services.
+  For all of our services, this is 'Bio2RDF2SADI', which is
+  a subfolder underneath our 'cgi-bin' folder. 
+
+=cut
+
+
 use RDF::Trine;
 use RDF::Query::Client;
 use RDF::Trine::Serializer::Turtle;
@@ -69,22 +86,22 @@ EOQ
             $row->{name2}->as_string,
             $row->{desc2}->as_string);
 my $stm;    
-#    $stm = statement($serv1, $type, $wfServ);
-#    $model->add_statement($stm);
-#    $stm = statement($serv1, $label, $name1);
-#    $model->add_statement($stm);
-#    $stm = statement($serv1, $comment, $desc1);
-#    $model->add_statement($stm);
+    $stm = statement($serv1, $type, $wfServ);
+    $model->add_statement($stm);
+    $stm = statement($serv1, $label, $name1);
+    $model->add_statement($stm);
+    $stm = statement($serv1, $comment, $desc1);
+    $model->add_statement($stm);
     
     
     $stm = statement($datatype, $type, $wfData);
     $model->add_statement($stm);
     $stm = statement($serv2, $uses, $datatype); 
     $model->add_statement($stm);
-#    $stm = statement($serv2, $label, $name2); 
-#    $model->add_statement($stm);
-#    $stm = statement($serv2, $comment, $desc2); 
-#    $model->add_statement($stm);
+    $stm = statement($serv2, $label, $name2); 
+    $model->add_statement($stm);
+    $stm = statement($serv2, $comment, $desc2); 
+    $model->add_statement($stm);
     
     $stm = statement($datatype, $generatedBy, $serv1);
     $model->add_statement($stm);
@@ -103,16 +120,18 @@ my $stm;
  close OUT;
 
 
-use RDF::Trine::Exporter::GraphViz;
 
-  my $ser = RDF::Trine::Exporter::GraphViz->new( as => 'dot',
-						style => {rankdir => 'LR'},
-						namespaces => {
-                                                                     opmw => 'http://www.opmw.org/ontology/',
-                                                                     rdfs => 'http://www.w3.org/2000/01/rdf-schema#',
-                                                                     rdf => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-								     sadi => 'http://biordf.org/cgi-bin/SADI/Bio2RDF2SADI/SADI/',} );
-  $ser->to_file( 'graph.svg', $model );
+# I personally didn't find this very useful, but if you want to see the map... uncomment this code
+
+#use RDF::Trine::Exporter::GraphViz;
+# my $ser = RDF::Trine::Exporter::GraphViz->new( as => 'dot',
+#						style => {rankdir => 'LR'},
+#						namespaces => {
+#                                                                     opmw => 'http://www.opmw.org/ontology/',
+#                                                                     rdfs => 'http://www.w3.org/2000/01/rdf-schema#',
+#                                                                     rdf => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+#								     sadi => 'http://biordf.org/cgi-bin/SADI/Bio2RDF2SADI/SADI/',} );
+#  $ser->to_file( 'graph.svg', $model );
 
 
 exit 1;
