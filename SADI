@@ -65,7 +65,7 @@ if (defined($request_uri) && defined($http_host)){
 =cut
 
 my $pathinfo = $ENV{'PATH_INFO'};
-&easy_die("path information from URL did not match pattern SADI/source/servicename\n") unless $pathinfo =~ /\/?(\S+)\/(\S+)\/?/;
+&easy_die("path information from URL did not match pattern SADI/source/servicename\n") unless ($pathinfo && ($pathinfo =~ /\/?(\S+)\/(\S+)\/?/));
 my ($dataset, $method) = ($1, $2);
 &easy_die("path information could not be parsed into 'source' and 'servicename'\n") unless ($dataset && $method);
 my $CFG = &getConfig($dataset, $method);
