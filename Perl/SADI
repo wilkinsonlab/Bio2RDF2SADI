@@ -108,6 +108,7 @@ my %config = (
     Provider => 'markw@illuminae.com',
     ServiceType => 'http://edamontology.org/operation_2421',  # EDAM:Database Query
     Authoritative => 0,
+    NanoPublisher => 1,
 );
 
 
@@ -155,7 +156,8 @@ sub process_it {
    				my $object = RDF::Trine::Node::Resource->new($resultURI);
    				my $pred = RDF::Trine::Node::Resource->new($CFG->{'PREDICATE_URI'});  # what is the predicate that we should be adding
 				my $statement = RDF::Trine::Statement->new($input, $pred, $object); 
-	        		$output_model->add_statement($statement);
+	        		$output_model->add_statement($statement, $input);
+				$output_model->nanopublish_result_for($input);
 			}
    		}
 	}
