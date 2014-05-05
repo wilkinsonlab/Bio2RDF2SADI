@@ -104,7 +104,7 @@ my %config = (
     InputClass => $CFG->{'INPUTCLASS_URI'},
     OutputClass => $CFG->{'OUTPUTCLASS_URI'},
     URL => $THISSCRIPT, 
-    Authority => 'wilkinsonlab.info', 
+    Authority => 'bio2rdf2sadi.wilkinsonlab.info', 
     Provider => 'markw@illuminae.com',
     ServiceType => 'http://edamontology.org/operation_2421',  # EDAM:Database Query
     Authoritative => 0,
@@ -195,8 +195,8 @@ sub getConfig{
 	open (CFG, "$CONFIGURATION_FILE_PATH/$dataset/$method.cfg");
 	my %config;
 	foreach (
-	"INPUTCLASS_URI", 
 	"INPUTCLASS_NAME", 
+	"INPUTCLASS_URI", 
 	"OUTPUTCLASS_NAME", 
 	"OUTPUTCLASS_URI", 
 	"PREDICATE_NAME", 
