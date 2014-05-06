@@ -37,26 +37,27 @@ PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX  serv: <http://www.mygrid.org.uk/mygrid-moby-service#>
 
-SELECT ?s ?name 
-FROM <http://sadiframework.org/registry/> 
+SELECT ?s
+FROM <http://sadiframework.org/registry/>
 WHERE
   { ?s rdf:type serv:serviceDescription .
-    ?s serv:hasServiceNameText ?name .
-  FILTER regex(str(?s), "Bio2RDF2SADI") 
-
+    ?s serv:providedBy ?org .
+    ?org dc:publisher ?pub .
+    FILTER regex(str(?pub), "bio2rdf2sadi") . 
   }
+
 EOF
 
  my $client = RDF::Query::Client
                ->new($query);
- my $iterator = $client->execute('http://sadiframework.org/registry/sparql/');
+ my $iterator = $client->execute('http://dev.biordf.net/sparql');
  
 my %to_deregister;
  while (my $row = $iterator->next) {
 	my $servname = $row->{s}->as_string;
 	$servname =~ s/[<>]//g;
-    print $servname, "\t", $row->{name}->as_string, "\n";
-    $to_deregister{$servname} = 1;
+        print $servname, "\t", $row->{s}->as_string, "\n";
+        $to_deregister{$servname} = 1;
  }
 
 #exit 1;

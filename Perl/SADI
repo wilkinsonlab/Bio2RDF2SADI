@@ -192,6 +192,7 @@ sub easy_die {
 
 sub getConfig{
 	my ($dataset, $method) = @_;
+	easy_die("Configuration file $dataset $method doesn't exist") unless (-e "$CONFIGURATION_FILE_PATH/$dataset/$method.cfg");
 	open (CFG, "$CONFIGURATION_FILE_PATH/$dataset/$method.cfg");
 	my %config;
 	foreach (
@@ -204,8 +205,8 @@ sub getConfig{
 	"ORIGINAL_ENDPOINT", 
 	"GENERIC_ENDPOINT") {
 		
-		my $line = <CFG> || easydie("not enough parameters in the config file; missing $_\n");
-		easydie("config line $line doesn't match expected structure\n") unless $line =~ /$_\=(\S+)/;
+		my $line = <CFG> || easy_die("not enough parameters in the config file; missing $_\n");
+		easy_die("config line $line doesn't match expected structure\n") unless $line =~ /$_\=(\S+)/;
 		my $value = $1;
 		if ($_ eq "INPUTCLASS_NAME" || $_ eq "OUTPUTCLASS_NAME" || $_ eq "PREDICATE_NAME"){
 			$value =~ /[:#]?([^:#]+)$/;  # sometimes includes the Bio2RDF namespace prefix, so remove that
