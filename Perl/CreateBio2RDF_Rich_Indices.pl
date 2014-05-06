@@ -60,23 +60,23 @@ group by ?o
 
 
 
-my $RAWliteraltypeSPARQL = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX void: <http://rdfs.org/ns/void#>
-PREFIX bio2rdf: <http://bio2rdf.org/>
-PREFIX http: <http://www.w3.org/2006/http#>
-
-SELECT distinct(?stype) ?p datatype(?o) as ?otype
-FROM <NAMED_GRAPH_HERE> 
-WHERE {
- ?s a ?stype .
- ?s ?p ?o .
- FILTER (?p != void:inDataset) . 
- FILTER isLiteral(?o)
-
-} 
-group by ?stype ?p datatype(?o)
-';
+#my $RAWliteraltypeSPARQL = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#PREFIX void: <http://rdfs.org/ns/void#>
+#PREFIX bio2rdf: <http://bio2rdf.org/>
+#PREFIX http: <http://www.w3.org/2006/http#>
+#
+#SELECT distinct(?stype) ?p datatype(?o) as ?otype
+#FROM <NAMED_GRAPH_HERE> 
+#WHERE {
+# ?s a ?stype .
+# ?s ?p ?o .
+# FILTER (?p != void:inDataset) . 
+# FILTER isLiteral(?o)
+#
+#} 
+#group by ?stype ?p datatype(?o)
+#';
 
 
 my %dataset_endpoints;
@@ -88,6 +88,9 @@ my $bio2rdfendpoints = get('http://s4.semanticscience.org/bio2rdf/3/');
 while (($bio2rdfendpoints =~ /\[(\w+)\].*?(http:\/\/s4.semanticscience.org:\d+\/sparql)/sg) ) {
         my ($namespace, $endpoint) = ($1, $2);
         next if $namespace eq "ndc";
+        next if $namespace eq "lsr";
+        next if $namespace eq "bioportal";
+        
         my $graphquery = RDF::Query::Client->new($namedgSPARQL);
         my $iterator = $graphquery->execute($endpoint,  {Parameters => {timeout => 380000, format => 'application/sparql-results+json'}});
         next unless $iterator;  # in case endpoint is down
@@ -115,7 +118,10 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
 
         while (my $row = $siterator->next){
                 my $stype = $row->{stype}->[1];
-
+                my $base_input_type = "";
+                print STDERR "\n\nno match $stype\n\n" unless $stype =~ m|(http://\S+\..*):\S+$|;  #(something-something.something:something:something):Geneotype
+                $base_input_type = "$1:Resource" if $1;  # because Bio2RDF doesn't know what type something is, it always outputs :Resource, which means we need services that will consume these weakly-typed data
+                
                 my $predicatetypesSPARQL = $RAWpredicatetypesSPARQL;
                 $predicatetypesSPARQL =~ s/NAMED_GRAPH_HERE/$namedgraph/;
                 $predicatetypesSPARQL =~ s/SUBJECT_TYPE_HERE/$stype/;
@@ -140,6 +146,7 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                                 my $otype = $row->{otype}->[1];
                                 print "           Found Triple Pattern:     $stype $ptype $otype\n";
                                 print OUT "$namespace\t$stype\t$ptype\t$otype\n";
+                                print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
                         }
 
                         my $datatypesSPARQL = $RAWobjectdatatypesSPARQL;
@@ -160,6 +167,7 @@ foreach my $namespace(sort(keys %dataset_endpoints)){
                                 }
                                 print "           Found Triple Pattern:     $stype $ptype $otype\n";
                                 print OUT "$namespace\t$stype\t$ptype\t$otype\n";
+                                print OUT "$namespace\t$base_input_type\t$ptype\t$otype\n" if $base_input_type;
                         }
                 }
         }
